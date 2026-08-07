@@ -62,5 +62,8 @@ avec la distinction fetching public vs authentifié.
   `max_level=3` (défaut) ne l'atteint jamais.
 - **Cookies et headers** : passés tels quels aux moteurs. L'authentification (obtention,
   renouvellement) n'est PAS du ressort de stealth-fetch — c'est au repo appelant de gérer.
+- **nodriver exige `--no-sandbox` sur le VPS** : Chrome refuse de démarrer en user non-root
+  sans ce flag. `--disable-dev-shm-usage` est aussi passé par précaution. Ces flags sont
+  codés dans `engines/stealth.py` — ne pas les retirer.
 - **Un seul navigateur nodriver à la fois** par requête : le niveau 3 lance un Chrome headless
   et le ferme après. Pas de pool de navigateurs (v0.1 — à réévaluer si contention).
