@@ -27,6 +27,7 @@ async def fetch(
     browser = await nodriver.start(
         headless=True,
         lang="fr-FR",
+        browser_args=["--no-sandbox", "--disable-dev-shm-usage"],
     )
     try:
         page = await browser.get(url, new_tab=True)
