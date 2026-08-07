@@ -15,6 +15,7 @@ def create_app():
 
     class FetchRequest(BaseModel):
         url: str
+        min_level: int = 1
         max_level: int = 3
         timeout: float | None = None
         headers: dict[str, str] | None = None
@@ -37,6 +38,7 @@ def create_app():
         try:
             result = await fetch_html(
                 req.url,
+                min_level=req.min_level,
                 max_level=req.max_level,
                 timeout=req.timeout,
                 headers=req.headers,

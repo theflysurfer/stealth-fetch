@@ -27,6 +27,7 @@ class FetchResult:
 async def fetch_html(
     url: str,
     *,
+    min_level: int = 1,
     max_level: int = 3,
     timeout: float | None = None,
     headers: dict[str, str] | None = None,
@@ -36,6 +37,8 @@ async def fetch_html(
 
     Args:
         url: target URL
+        min_level: lowest engine to try (1-4). Default 1. Use 3 to skip straight
+            to the browser when the target page requires JS rendering.
         max_level: highest engine to try (1-4). Default 3 (no SaaS).
         timeout: per-engine timeout in seconds (engine defaults if None)
         headers: extra HTTP headers (passed to all engines)
@@ -49,10 +52,10 @@ async def fetch_html(
     """
     from .engines import direct, curlffi, stealth, saas
 
-    engines: list[tuple[str, object]] = [
-        ("direct", direct),
-    ]
-    if max_level >= 2 and curlffi.is_available():
+    engines: list[tuple[str, object]] = []
+    if min_level <= 1:
+        engines.append(("direct", direct))
+    if min_level <= 2 and max_level >= 2 and curlffi.is_available():
         engines.append(("curlffi", curlffi))
     if max_level >= 3 and stealth.is_available():
         engines.append(("stealth", stealth))
