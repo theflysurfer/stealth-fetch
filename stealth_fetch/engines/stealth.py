@@ -1,0 +1,58 @@
+"""Level 3 — nodriver (CDP-direct stealth browser, no Playwright dependency)."""
+
+from __future__ import annotations
+
+_AVAILABLE = True
+try:
+    import nodriver  # type: ignore[import-untyped]
+except ImportError:
+    _AVAILABLE = False
+    nodriver = None  # type: ignore[assignment]
+
+
+def is_available() -> bool:
+    return _AVAILABLE
+
+
+async def fetch(
+    url: str,
+    *,
+    timeout: float = 30,
+    headers: dict[str, str] | None = None,
+    cookies: dict[str, str] | None = None,
+) -> tuple[int, str, dict[str, str]]:
+    if not _AVAILABLE:
+        raise RuntimeError("nodriver not installed — pip install stealth-fetch[stealth]")
+
+    browser = await nodriver.start(
+        headless=True,
+        lang="fr-FR",
+    )
+    try:
+        page = await browser.get(url, new_tab=True)
+
+        # Wait for page to settle (JS rendering, challenges)
+        await page.sleep(2)
+
+        # Dismiss common cookie banners
+        for selector in [
+            "#didomi-notice-agree-button",
+            "[id*='accept']",
+            "button[class*='consent']",
+            "[data-testid='cookie-policy-manage-dialog-btn-accept-all']",
+        ]:
+            try:
+                btn = await page.find(selector, timeout=1)
+                if btn:
+                    await btn.click()
+                    await page.sleep(0.5)
+                    break
+            except Exception:
+                continue
+
+        html = await page.get_content()
+        final_url = page.url or url
+
+        return 200, html, {"x-final-url": final_url}
+    finally:
+        browser.stop()
