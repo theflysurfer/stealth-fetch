@@ -27,6 +27,7 @@ async def fetch(
     timeout: float = 10,
     headers: dict[str, str] | None = None,
     cookies: dict[str, str] | None = None,
+    proxy: str | None = None,
 ) -> tuple[int, str, dict[str, str]]:
     merged = {
         **DEFAULT_HEADERS,
@@ -37,6 +38,7 @@ async def fetch(
         follow_redirects=True,
         timeout=timeout,
         http2=True,
+        proxy=proxy,
     ) as client:
         resp = await client.get(url, headers=merged, cookies=cookies)
         resp_headers = {k: v for k, v in resp.headers.items()}

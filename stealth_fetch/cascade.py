@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 
@@ -11,6 +12,7 @@ from .detection import is_blocked
 log = logging.getLogger("stealth_fetch")
 
 ENGINE_NAMES = ["direct", "curlffi", "stealth", "saas"]
+DEFAULT_PROXY = os.environ.get("STEALTH_FETCH_PROXY")
 
 
 @dataclass
@@ -32,6 +34,7 @@ async def fetch_html(
     timeout: float | None = None,
     headers: dict[str, str] | None = None,
     cookies: dict[str, str] | None = None,
+    proxy: str | None = None,
 ) -> FetchResult:
     """Fetch HTML through the cascade. Levels: 1=direct, 2=curl_cffi, 3=nodriver, 4=saas.
 
@@ -43,6 +46,8 @@ async def fetch_html(
         timeout: per-engine timeout in seconds (engine defaults if None)
         headers: extra HTTP headers (passed to all engines)
         cookies: cookies dict (passed to engines that support it)
+        proxy: SOCKS5/HTTP proxy URL (e.g. socks5://127.0.0.1:1080).
+            Falls back to STEALTH_FETCH_PROXY env var if not set.
 
     Returns:
         FetchResult with HTML content and metadata
@@ -50,6 +55,9 @@ async def fetch_html(
     Raises:
         RuntimeError: if all engines fail
     """
+    if proxy is None:
+        proxy = DEFAULT_PROXY
+
     from .engines import direct, curlffi, stealth, saas
 
     engines: list[tuple[str, object]] = []
@@ -75,6 +83,8 @@ async def fetch_html(
                 kwargs["headers"] = headers
             if cookies:
                 kwargs["cookies"] = cookies
+            if proxy:
+                kwargs["proxy"] = proxy
 
             status, html, resp_headers = await engine.fetch(url, **kwargs)  # type: ignore[union-attr]
             elapsed = int((time.monotonic() - t0) * 1000)

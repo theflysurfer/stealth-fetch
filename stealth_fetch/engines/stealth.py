@@ -31,14 +31,19 @@ async def fetch(
     timeout: float = 30,
     headers: dict[str, str] | None = None,
     cookies: dict[str, str] | None = None,
+    proxy: str | None = None,
 ) -> tuple[int, str, dict[str, str]]:
     if not _AVAILABLE:
         raise RuntimeError("nodriver not installed — pip install stealth-fetch[stealth]")
 
+    browser_args = ["--no-sandbox", "--disable-dev-shm-usage"]
+    if proxy:
+        browser_args.append(f"--proxy-server={proxy}")
+
     browser = await nodriver.start(
         headless=True,
         lang="fr-FR",
-        browser_args=["--no-sandbox", "--disable-dev-shm-usage"],
+        browser_args=browser_args,
     )
     try:
         page = await browser.get(url, new_tab=True)

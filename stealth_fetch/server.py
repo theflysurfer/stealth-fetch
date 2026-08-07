@@ -20,6 +20,7 @@ def create_app():
         timeout: float | None = None
         headers: dict[str, str] | None = None
         cookies: dict[str, str] | None = None
+        proxy: str | None = None
 
     class FetchResponse(BaseModel):
         html: str
@@ -43,6 +44,7 @@ def create_app():
                 timeout=req.timeout,
                 headers=req.headers,
                 cookies=req.cookies,
+                proxy=req.proxy,
             )
             return FetchResponse(
                 html=result.html,

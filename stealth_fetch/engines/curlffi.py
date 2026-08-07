@@ -20,6 +20,7 @@ async def fetch(
     headers: dict[str, str] | None = None,
     cookies: dict[str, str] | None = None,
     impersonate: str = "chrome131",
+    proxy: str | None = None,
 ) -> tuple[int, str, dict[str, str]]:
     if not _AVAILABLE:
         raise RuntimeError("curl_cffi not installed — pip install stealth-fetch[curlffi]")
@@ -31,6 +32,7 @@ async def fetch(
             cookies=cookies or {},
             timeout=timeout,
             allow_redirects=True,
+            proxy=proxy,
         )
         resp_headers = {k: v for k, v in resp.headers.items()}
         return resp.status_code, resp.text, resp_headers

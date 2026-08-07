@@ -19,6 +19,7 @@ async def fetch(
     timeout: float = 30,
     headers: dict[str, str] | None = None,
     cookies: dict[str, str] | None = None,
+    proxy: str | None = None,
 ) -> tuple[int, str, dict[str, str]]:
     api_key = os.environ.get("SCRAPFLY_API_KEY")
     if not api_key:
