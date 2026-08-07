@@ -1,7 +1,5 @@
 """HTTP microservice — POST /fetch-html."""
 
-from __future__ import annotations
-
 import logging
 
 from .cascade import fetch_html
