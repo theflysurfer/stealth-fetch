@@ -18,10 +18,11 @@ def _is_chrome_error(html: str) -> bool:
     """Detect Chrome's built-in error pages (connection failures, DNS errors).
 
     These are rendered locally by Chrome and returned as 200 by nodriver,
-    masking the actual failure. Typical size: ~185KB, contains Chromium
-    copyright and "might be temporarily down" text.
+    masking the actual failure. Typical size: ~185KB. Chrome uses multiple
+    error messages ("temporarily down", "DNS address could not be found",
+    "refused to connect") but all share the Chromium CSS copyright.
     """
-    return "The Chromium Authors" in html[:2000] and "temporarily down" in html
+    return "The Chromium Authors" in html[:2000]
 
 
 async def fetch(
