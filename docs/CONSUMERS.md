@@ -154,7 +154,7 @@ passer par le niveau 2 (curl_cffi TLS fingerprint) résout le problème sans tou
 
 ### Phase 2 : premiers consommateurs
 - [ ] Waaker : remplacer cf-bypass-client par `POST /fetch-html`
-- [ ] activity-scraper : remplacer le fetcher maison par `from stealth_fetch import fetch_html`
+- [x] activity-scraper : remplacé le fetcher maison par `POST stealth-fetch/fetch-html` (d764e52)
 - [x] Allocine API : remplacé les 3 moteurs inline par `fetch_html(min_level=3)` (bb0e968)
 
 ### Phase 3 : extension
