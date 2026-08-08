@@ -61,7 +61,7 @@ async def fetch(
     cookies: dict[str, str] | None = None,
     proxy: str | None = None,
 ) -> tuple[int, str, dict[str, str]]:
-    if not _AVAILABLE:
+    if nodriver is None:
         raise RuntimeError("nodriver not installed — pip install stealth-fetch[stealth]")
 
     browser_args = ["--no-sandbox", "--disable-dev-shm-usage"]

@@ -7,6 +7,7 @@ try:
     from curl_cffi.requests import AsyncSession  # type: ignore[import-untyped]
 except ImportError:
     _AVAILABLE = False
+    AsyncSession = None  # type: ignore[assignment]
 
 
 def is_available() -> bool:
@@ -22,10 +23,10 @@ async def fetch(
     impersonate: str = "chrome131",
     proxy: str | None = None,
 ) -> tuple[int, str, dict[str, str]]:
-    if not _AVAILABLE:
+    if AsyncSession is None:
         raise RuntimeError("curl_cffi not installed — pip install stealth-fetch[curlffi]")
 
-    async with AsyncSession(impersonate=impersonate) as session:
+    async with AsyncSession(impersonate=impersonate) as session:  # type: ignore[arg-type]
         resp = await session.get(
             url,
             headers=headers or {},
