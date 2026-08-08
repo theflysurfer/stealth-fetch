@@ -14,6 +14,17 @@ def is_available() -> bool:
     return _AVAILABLE
 
 
+def _is_cloudflare_challenge(html: str) -> bool:
+    head = html[:5000].lower()
+    return any(m in head for m in (
+        "just a moment...",
+        "challenge-running",
+        "challenge-stage",
+        "challenges.cloudflare.com",
+        "__cf_chl",
+    ))
+
+
 def _is_chrome_error(html: str) -> bool:
     """Detect Chrome's built-in error pages (connection failures, DNS errors).
 
@@ -47,9 +58,27 @@ async def fetch(
     )
     try:
         page = await browser.get(url, new_tab=True)
-
-        # Wait for page to settle (JS rendering, challenges)
         await page.sleep(2)
+
+        html = await page.get_content()
+
+        if _is_cloudflare_challenge(html):
+            # Try clicking the Turnstile checkbox if present
+            for sel in ["#challenge-stage iframe", "iframe[src*='turnstile']"]:
+                try:
+                    frame = await page.find(sel, timeout=2)
+                    if frame:
+                        await frame.click()
+                        break
+                except Exception:
+                    continue
+
+            # Wait for challenge to auto-resolve (up to 10s, polling every 2s)
+            for _ in range(5):
+                await page.sleep(2)
+                html = await page.get_content()
+                if not _is_cloudflare_challenge(html):
+                    break
 
         # Dismiss common cookie banners
         for selector in [

@@ -10,6 +10,7 @@ dependencies = [
 [project.optional-dependencies]
 curlffi = ["curl_cffi>=0.7"]
 stealth = ["nodriver>=0.40"]
+camoufox = ["camoufox>=0.4", "playwright>=1.40"]
 saas = []  # no extra deps — plain httpx
 server = [
     "fastapi>=0.115",
@@ -18,6 +19,8 @@ server = [
 all = [
     "curl_cffi>=0.7",
     "nodriver>=0.40",
+    "camoufox>=0.4",
+    "playwright>=1.40",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
 ]

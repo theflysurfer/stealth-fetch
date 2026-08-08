@@ -11,7 +11,7 @@ from .detection import is_blocked
 
 log = logging.getLogger("stealth_fetch")
 
-ENGINE_NAMES = ["direct", "curlffi", "stealth", "saas"]
+ENGINE_NAMES = ["direct", "curlffi", "stealth", "camoufox", "saas"]
 DEFAULT_PROXY = os.environ.get("STEALTH_FETCH_PROXY")
 
 
@@ -36,13 +36,13 @@ async def fetch_html(
     cookies: dict[str, str] | None = None,
     proxy: str | None = None,
 ) -> FetchResult:
-    """Fetch HTML through the cascade. Levels: 1=direct, 2=curl_cffi, 3=nodriver, 4=saas.
+    """Fetch HTML through the cascade. Levels: 1=direct, 2=curl_cffi, 3=nodriver, 4=camoufox, 5=saas.
 
     Args:
         url: target URL
-        min_level: lowest engine to try (1-4). Default 1. Use 3 to skip straight
+        min_level: lowest engine to try (1-5). Default 1. Use 3 to skip straight
             to the browser when the target page requires JS rendering.
-        max_level: highest engine to try (1-4). Default 3 (no SaaS).
+        max_level: highest engine to try (1-5). Default 3 (no camoufox/SaaS).
         timeout: per-engine timeout in seconds (engine defaults if None)
         headers: extra HTTP headers (passed to all engines)
         cookies: cookies dict (passed to engines that support it)
@@ -58,16 +58,18 @@ async def fetch_html(
     if proxy is None:
         proxy = DEFAULT_PROXY
 
-    from .engines import direct, curlffi, stealth, saas
+    from .engines import direct, curlffi, stealth, camoufox_engine, saas
 
     engines: list[tuple[str, object]] = []
     if min_level <= 1:
         engines.append(("direct", direct))
     if min_level <= 2 and max_level >= 2 and curlffi.is_available():
         engines.append(("curlffi", curlffi))
-    if max_level >= 3 and stealth.is_available():
+    if max_level >= 3 and min_level <= 3 and stealth.is_available():
         engines.append(("stealth", stealth))
-    if max_level >= 4 and saas.is_available():
+    if max_level >= 4 and min_level <= 4 and camoufox_engine.is_available():
+        engines.append(("camoufox", camoufox_engine))
+    if max_level >= 5 and saas.is_available():
         engines.append(("saas", saas))
 
     attempts: list[dict[str, object]] = []
