@@ -82,5 +82,9 @@ avec la distinction fetching public vs authentifié.
   (`stealth-fetch-scrapfly-key`) chargés via `LoadCredentialEncrypted` dans l'unit systemd.
   **Ces env vars sont invisibles en SSH** — elles n'existent que dans le processus du service.
   Pour les lire : `sudo cat /proc/$(systemctl show stealth-fetch -p MainPID --value)/environ | tr '\0' '\n' | grep STEALTH_FETCH`.
+- **Proxy-retry automatique** : quand un proxy est configuré et qu'un moteur échoue avec
+  une erreur SSL caractéristique du proxy (WRONG_VERSION_NUMBER, PROXY_BAD_GATEWAY, etc.),
+  `cascade.py` retente le même moteur sans proxy avant d'escalader. Idem pour les
+  `generic-block` sur camoufox/stealth avec proxy. Les marqueurs sont dans `_PROXY_SSL_MARKERS`.
 - **Un seul navigateur nodriver à la fois** par requête : le niveau 3 lance un Chrome headless
   et le ferme après. Pas de pool de navigateurs (v0.1 — à réévaluer si contention).
