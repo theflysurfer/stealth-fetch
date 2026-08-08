@@ -1,4 +1,4 @@
-"""Level 4 — SaaS anti-bot API (Scrapfly). Optional, requires SCRAPFLY_API_KEY."""
+"""Level 5 — SaaS anti-bot API (Scrapfly). Optional, requires SCRAPFLY_API_KEY."""
 
 from __future__ import annotations
 
