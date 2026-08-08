@@ -61,13 +61,24 @@ avec la distinction fetching public vs authentifié.
   directe vers le niveau 3).
 - **Camoufox (niveau 4)** : Firefox anti-détection via Playwright. Après `pip install camoufox`,
   lancer `python -m camoufox fetch` pour télécharger le binaire Firefox (~660 Mo).
-  Débloque certains sites Cloudflare que nodriver (Chrome) ne passe pas.
+  Le premier appel avec `geoip=True` télécharge aussi GeoLite2 (~45 Mo) → prévoir un
+  timeout plus long ou pré-lancer une requête de warmup.
 - **Le niveau 5 (SaaS) est désactivé par défaut** : il faut poser `SCRAPFLY_API_KEY` en env.
-  `max_level=4` (défaut) ne l'atteint jamais.
+  `max_level=3` (défaut cascade) ne l'atteint jamais — passer `max_level=5` explicitement.
 - **Cookies et headers** : passés tels quels aux moteurs. L'authentification (obtention,
   renouvellement) n'est PAS du ressort de stealth-fetch — c'est au repo appelant de gérer.
 - **nodriver exige `--no-sandbox` sur le VPS** : Chrome refuse de démarrer en user non-root
   sans ce flag. `--disable-dev-shm-usage` est aussi passé par précaution. Ces flags sont
   codés dans `engines/stealth.py` — ne pas les retirer.
+- **nodriver ne supporte pas les proxies authentifiés** : Chrome `--proxy-server` n'accepte
+  que `host:port` sans credentials. Si un proxy `user:pass@host:port` est configuré, nodriver
+  lève RuntimeError et la cascade tombe sur Camoufox (qui gère l'auth proxy via Playwright).
+- **DataDome/Akamai = faux positifs sur pages 200** : le SDK JS de ces protections est
+  présent sur toutes les pages (monitoring), pas seulement les pages de challenge.
+  `is_blocked()` ne flague pas un status 200 avec >5 Ko de HTML pour ces deux protections.
+- **uvicorn masque les log.info()** : le root logger d'uvicorn est à WARNING. Utiliser
+  `log.warning()` pour les messages opérationnels (blocage, erreur cascade).
+- **Secrets VPS en credstore** : proxy (`stealth-fetch-proxy`) et clé Scrapfly
+  (`stealth-fetch-scrapfly-key`) chargés via `LoadCredentialEncrypted` dans l'unit systemd.
 - **Un seul navigateur nodriver à la fois** par requête : le niveau 3 lance un Chrome headless
   et le ferme après. Pas de pool de navigateurs (v0.1 — à réévaluer si contention).
