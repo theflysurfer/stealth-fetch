@@ -44,7 +44,7 @@ async def fetch(
             from urllib.parse import urlparse
             domain = urlparse(url).hostname or ""
             await page.context.add_cookies([
-                {"name": k, "value": v, "domain": domain, "path": "/", "url": url}
+                {"name": k, "value": v, "domain": domain, "path": "/"}
                 for k, v in cookies.items()
             ])
 
