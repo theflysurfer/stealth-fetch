@@ -5,14 +5,15 @@ Remplace FlareSolverr (mourant) et unifie le fetching de 12+ repos.
 
 ## Architecture
 
-4 niveaux en cascade, chacun essayé si le précédent est bloqué :
+5 niveaux en cascade, chacun essayé si le précédent est bloqué :
 
 | Niveau | Moteur | Module | Dépendance |
 |---|---|---|---|
 | 1 | httpx direct | `engines/direct.py` | `httpx` (core) |
 | 2 | curl_cffi TLS fingerprint | `engines/curlffi.py` | `curl_cffi` (optional) |
 | 3 | nodriver stealth browser | `engines/stealth.py` | `nodriver` (optional) |
-| 4 | Scrapfly SaaS | `engines/saas.py` | `SCRAPFLY_API_KEY` env var |
+| 4 | Camoufox anti-detection Firefox | `engines/camoufox_engine.py` | `camoufox` + `playwright` (optional) |
+| 5 | Scrapfly SaaS | `engines/saas.py` | `SCRAPFLY_API_KEY` env var |
 
 `detection.py` identifie le type de protection (Cloudflare, DataDome, Akamai, CAPTCHA).
 `cascade.py` orchestre les niveaux et produit un `FetchResult`.
@@ -58,8 +59,11 @@ avec la distinction fetching public vs authentifié.
   `which google-chrome` ou `which chromium-browser`.
 - **curl_cffi = optional** : si absent, le niveau 2 est sauté (pas d'erreur, juste escalade
   directe vers le niveau 3).
-- **Le niveau 4 (SaaS) est désactivé par défaut** : il faut poser `SCRAPFLY_API_KEY` en env.
-  `max_level=3` (défaut) ne l'atteint jamais.
+- **Camoufox (niveau 4)** : Firefox anti-détection via Playwright. Après `pip install camoufox`,
+  lancer `python -m camoufox fetch` pour télécharger le binaire Firefox (~660 Mo).
+  Débloque certains sites Cloudflare que nodriver (Chrome) ne passe pas.
+- **Le niveau 5 (SaaS) est désactivé par défaut** : il faut poser `SCRAPFLY_API_KEY` en env.
+  `max_level=4` (défaut) ne l'atteint jamais.
 - **Cookies et headers** : passés tels quels aux moteurs. L'authentification (obtention,
   renouvellement) n'est PAS du ressort de stealth-fetch — c'est au repo appelant de gérer.
 - **nodriver exige `--no-sandbox` sur le VPS** : Chrome refuse de démarrer en user non-root
