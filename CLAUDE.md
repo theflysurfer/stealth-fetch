@@ -80,5 +80,7 @@ avec la distinction fetching public vs authentifié.
   `log.warning()` pour les messages opérationnels (blocage, erreur cascade).
 - **Secrets VPS en credstore** : proxy (`stealth-fetch-proxy`) et clé Scrapfly
   (`stealth-fetch-scrapfly-key`) chargés via `LoadCredentialEncrypted` dans l'unit systemd.
+  **Ces env vars sont invisibles en SSH** — elles n'existent que dans le processus du service.
+  Pour les lire : `sudo cat /proc/$(systemctl show stealth-fetch -p MainPID --value)/environ | tr '\0' '\n' | grep STEALTH_FETCH`.
 - **Un seul navigateur nodriver à la fois** par requête : le niveau 3 lance un Chrome headless
   et le ferme après. Pas de pool de navigateurs (v0.1 — à réévaluer si contention).

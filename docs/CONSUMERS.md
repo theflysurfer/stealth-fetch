@@ -10,8 +10,8 @@ FlareSolverr est en fin de vie (CAPTCHA cassé depuis janvier 2026, dernier rele
 indépendantes (cf-bypass-client en JS, curl_cffi en Python, patchright en Python). Aucun
 service centralisé n'existait.
 
-`stealth-fetch` unifie tout en une **bibliothèque Python + microservice HTTP** avec 4 niveaux
-en cascade : direct → curl_cffi → nodriver → SaaS (optionnel).
+`stealth-fetch` unifie tout en une **bibliothèque Python + microservice HTTP** avec 5 niveaux
+en cascade : direct → curl_cffi → nodriver → Camoufox → SaaS (optionnel).
 
 ## Distinction : fetching PUBLIC vs AUTHENTIFIÉ
 
@@ -86,7 +86,8 @@ passer par le niveau 2 (curl_cffi TLS fingerprint) résout le problème sans tou
 │  │  Niveau 1: httpx direct           (~0.5s, gratuit)  │    │
 │  │  Niveau 2: curl_cffi TLS fingerp. (~1-2s, gratuit)  │    │
 │  │  Niveau 3: nodriver browser       (~3-8s, gratuit)  │    │
-│  │  Niveau 4: Scrapfly SaaS          (~2-5s, payant)   │    │
+│  │  Niveau 4: Camoufox anti-detect   (~5-12s, gratuit) │    │
+│  │  Niveau 5: Scrapfly SaaS          (~2-5s, payant)   │    │
 │  └────────┬────────────────────────────────────────────┘    │
 │           │                                                 │
 │  ┌────────┼────────────────────────────────────────────┐    │
@@ -136,24 +137,25 @@ passer par le niveau 2 (curl_cffi TLS fingerprint) résout le problème sans tou
 
 | Service | Taux de succès | Prix | Verdict |
 |---|---|---|---|
-| Scrapfly | 98% (#1/8 benchmark) | 30 €/mois | Meilleur rapport, niveau 4 |
+| Scrapfly | 98% (#1/8 benchmark) | 30 €/mois | Meilleur rapport, niveau 5 |
 | Bright Data | 98.4% | Pay-as-you-go | Complexe à configurer |
 | ZenRows | 58% | 69 €/mois | Marketing > réalité |
 | ScraperAPI | 49% | 49 €/mois | À éviter |
 
 ## Plan de migration
 
-### Phase 1 : repo fonctionnel (cette session)
+### Phase 1 : repo fonctionnel
 - [x] Créer le repo `stealth-fetch`
-- [x] Implémenter la cascade 4 niveaux
+- [x] Implémenter la cascade 5 niveaux (direct → curl_cffi → nodriver → Camoufox → SaaS)
 - [x] Serveur HTTP FastAPI
+- [x] Déployer sur VPS (systemd unit, port 8410)
+- [x] Proxy résidentiel Webshare + clé Scrapfly en credstore
 - [ ] Tests unitaires (détection + cascade mock)
-- [ ] Déployer sur VPS (systemd unit, port 8410)
 
 ### Phase 2 : premiers consommateurs
 - [ ] Waaker : remplacer cf-bypass-client par `POST /fetch-html`
 - [ ] activity-scraper : remplacer le fetcher maison par `from stealth_fetch import fetch_html`
-- [ ] Allocine API : remplacer les 3 moteurs inline
+- [x] Allocine API : remplacé les 3 moteurs inline par `fetch_html(min_level=3)` (bb0e968)
 
 ### Phase 3 : extension
 - [ ] Leclerc Drive, Google Recorder, AI Chat Export : transport authentifié
