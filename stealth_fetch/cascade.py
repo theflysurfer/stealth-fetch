@@ -98,7 +98,8 @@ async def fetch_html(
                     "engine": name, "status": status, "blocked": True,
                     "protection": protection, "elapsed_ms": elapsed,
                 })
-                log.info("engine=%s blocked=%s elapsed=%dms url=%s", name, protection, elapsed, url)
+                last_error = f"{name}: blocked by {protection}"
+                log.warning("engine=%s blocked=%s elapsed=%dms url=%s", name, protection, elapsed, url)
                 continue
 
             log.info("engine=%s status=%d elapsed=%dms url=%s", name, status, elapsed, url)

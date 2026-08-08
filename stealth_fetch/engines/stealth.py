@@ -25,6 +25,23 @@ def _is_cloudflare_challenge(html: str) -> bool:
     ))
 
 
+def _strip_proxy_auth(proxy_url: str) -> str:
+    """Chrome's --proxy-server flag does not support user:pass@ authentication.
+
+    For HTTP proxies with credentials (like Webshare rotating residential),
+    we raise so the cascade falls through to Camoufox which handles auth natively.
+    SOCKS5 proxies without auth (like microsocks) pass through unchanged.
+    """
+    from urllib.parse import urlparse
+    p = urlparse(proxy_url)
+    if p.username or p.password:
+        raise RuntimeError(
+            f"nodriver/Chrome cannot authenticate to proxy {p.hostname}:{p.port} "
+            f"(--proxy-server does not support credentials) — falling through to next engine"
+        )
+    return proxy_url
+
+
 def _is_chrome_error(html: str) -> bool:
     """Detect Chrome's built-in error pages (connection failures, DNS errors).
 
@@ -49,7 +66,8 @@ async def fetch(
 
     browser_args = ["--no-sandbox", "--disable-dev-shm-usage"]
     if proxy:
-        browser_args.append(f"--proxy-server={proxy}")
+        proxy_for_chrome = _strip_proxy_auth(proxy)
+        browser_args.append(f"--proxy-server={proxy_for_chrome}")
 
     browser = await nodriver.start(
         headless=True,

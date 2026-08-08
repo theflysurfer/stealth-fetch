@@ -29,7 +29,12 @@ async def fetch(
     if proxy:
         proxy_cfg = _parse_proxy(proxy)
 
-    async with AsyncCamoufox(headless=True, proxy=proxy_cfg) as browser:
+    async with AsyncCamoufox(
+        headless=True,
+        proxy=proxy_cfg,
+        humanize=True,
+        geoip=True,
+    ) as browser:
         page = await browser.new_page()
 
         if headers:

@@ -62,4 +62,12 @@ def detect_protection(status: int, html: str, headers: dict[str, str] | None = N
 
 
 def is_blocked(status: int, html: str, headers: dict[str, str] | None = None) -> bool:
-    return detect_protection(status, html, headers) is not None
+    protection = detect_protection(status, html, headers)
+    if protection is None:
+        return False
+
+    if status == 200 and len(html) > 5000:
+        if protection in ("datadome", "akamai"):
+            return False
+
+    return True
