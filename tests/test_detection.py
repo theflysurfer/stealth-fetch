@@ -52,5 +52,27 @@ class TestDetection(unittest.TestCase):
         assert detect_protection(404, html) is None
 
 
+class TestAkamaiInterstitial(unittest.TestCase):
+    """Régression : l'interstitiel Akamai est servi en 200 avec un corps long.
+
+    L'heuristique « 200 + page longue = vrai contenu » le blanchissait, donc la
+    cascade s'arrêtait au premier moteur en croyant tenir la page — alors qu'elle
+    tenait la page de vérification. Constaté sur intramuros.org le 2026-08-16.
+    """
+
+    INTERSTITIAL = "<html><body><script>bm-verify</script>" + "x" * 9000 + "</body></html>"
+
+    def test_detected_as_interstitial(self):
+        self.assertEqual(detect_protection(200, self.INTERSTITIAL), "interstitial")
+
+    def test_long_200_interstitial_is_still_blocked(self):
+        self.assertTrue(is_blocked(200, self.INTERSTITIAL))
+
+    def test_legitimate_akamai_page_not_blocked(self):
+        """Un cookie _abck sur une vraie page ne doit PAS déclencher d'escalade."""
+        html = "<html><body>_abck=xyz" + "contenu reel " * 900 + "</body></html>"
+        self.assertFalse(is_blocked(200, html))
+
+
 if __name__ == "__main__":
     unittest.main()

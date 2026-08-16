@@ -17,10 +17,27 @@ DATADOME_MARKERS = [
     "interstitial.datadome",
 ]
 
+#: Marqueurs d'INFRASTRUCTURE Akamai : présents aussi bien sur une page servie
+#: normalement (cookie de session, CDN) que sur un blocage. Leur présence seule
+#: ne prouve rien — cf. l'exception de `is_blocked`.
 AKAMAI_MARKERS = [
     "_abck",
     "akam/",
     "akamaihd.net",
+]
+
+#: Marqueurs d'INTERSTITIEL — la page de vérification servie À LA PLACE du
+#: contenu. Contrairement aux précédents, ils prouvent le blocage à eux seuls.
+#:
+#: ⚠️ Akamai Bot Manager sert cet interstitiel en **HTTP 200**, avec un corps de
+#: plusieurs kilo-octets. L'heuristique « 200 + page longue = vrai contenu » le
+#: laissait donc passer, et la cascade s'arrêtait au premier moteur en croyant
+#: avoir réussi (constaté sur intramuros.org, 2026-08-16).
+#: Volontairement étroit : « access denied » a été écarté car il apparaît dans
+#: des 403 ordinaires, déjà couverts par `generic-block`.
+INTERSTITIAL_MARKERS = [
+    "bm-verify",
+    "please enable javascript and cookies",
 ]
 
 CAPTCHA_MARKERS = [
@@ -44,6 +61,10 @@ def detect_protection(status: int, html: str, headers: dict[str, str] | None = N
         if marker in lower_html or marker in header_str:
             return "datadome"
 
+    for marker in INTERSTITIAL_MARKERS:
+        if marker in lower_html:
+            return "interstitial"
+
     for marker in AKAMAI_MARKERS:
         if marker in lower_html or marker in header_str:
             return "akamai"
@@ -66,6 +87,11 @@ def is_blocked(status: int, html: str, headers: dict[str, str] | None = None) ->
     if protection is None:
         return False
 
+    # Une page longue servie en 200 est probablement du vrai contenu : les
+    # marqueurs d'INFRASTRUCTURE (cookie `_abck`, CDN) s'y trouvent normalement.
+    # ⚠️ L'exception ne vaut PAS pour un interstitiel, qui est précisément servi
+    # en 200 avec un corps volumineux — l'y inclure revenait à conclure « pas de
+    # blocage » sur la page de vérification elle-même.
     if status == 200 and len(html) > 5000:
         if protection in ("datadome", "akamai"):
             return False
