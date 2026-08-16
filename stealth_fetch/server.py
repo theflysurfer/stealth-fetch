@@ -63,13 +63,14 @@ def create_app():
 
     @app.get("/health")
     async def health():
-        from .engines import curlffi, stealth, camoufox_engine, saas
+        from .engines import curlffi, stealth, patchright_engine, camoufox_engine, saas
         return {
             "status": "ok",
             "engines": {
                 "direct": True,
                 "curlffi": curlffi.is_available(),
                 "stealth": stealth.is_available(),
+                "patchright": patchright_engine.is_available(),
                 "camoufox": camoufox_engine.is_available(),
                 "saas": saas.is_available(),
             },

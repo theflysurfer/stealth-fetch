@@ -11,7 +11,7 @@ from .detection import is_blocked
 
 log = logging.getLogger("stealth_fetch")
 
-ENGINE_NAMES = ["direct", "curlffi", "stealth", "camoufox", "saas"]
+ENGINE_NAMES = ["direct", "curlffi", "stealth", "patchright", "camoufox", "saas"]
 DEFAULT_PROXY = os.environ.get("STEALTH_FETCH_PROXY")
 
 _PROXY_SSL_MARKERS = [
@@ -65,7 +65,7 @@ async def fetch_html(
     if proxy is None:
         proxy = DEFAULT_PROXY
 
-    from .engines import direct, curlffi, stealth, camoufox_engine, saas
+    from .engines import direct, curlffi, stealth, patchright_engine, camoufox_engine, saas
 
     engines: list[tuple[str, object]] = []
     if min_level <= 1:
@@ -74,6 +74,10 @@ async def fetch_html(
         engines.append(("curlffi", curlffi))
     if max_level >= 3 and min_level <= 3 and stealth.is_available():
         engines.append(("stealth", stealth))
+    # Patchright rides at level 3 alongside nodriver: it is the only engine that
+    # clears Akamai Bot Manager, which nodriver and camoufox both fail (#4).
+    if max_level >= 3 and min_level <= 3 and patchright_engine.is_available():
+        engines.append(("patchright", patchright_engine))
     if max_level >= 4 and min_level <= 4 and camoufox_engine.is_available():
         engines.append(("camoufox", camoufox_engine))
     if max_level >= 5 and saas.is_available():
