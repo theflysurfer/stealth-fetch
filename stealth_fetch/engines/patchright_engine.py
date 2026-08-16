@@ -32,6 +32,7 @@ to disappear, and reports the status honestly if it never does.
 from __future__ import annotations
 
 import os
+from typing import Any
 
 _AVAILABLE = True
 try:
@@ -93,16 +94,18 @@ async def fetch(
 
     headless = os.environ.get("STEALTH_FETCH_PATCHRIGHT_HEADLESS", "") == "1"
 
+    # Patchright's stubs type `proxy` as None, so the argument is passed through
+    # **kwargs rather than sprinkling type: ignore over two call sites.
+    options: Any = {"headless": headless}
+    if proxy:
+        options["proxy"] = _parse_proxy(proxy)
+
     async with async_playwright() as playwright:
-        launch: dict[str, object] = {
-            "headless": headless,
-            "proxy": _parse_proxy(proxy) if proxy else None,
-        }
         try:
             # The real Chrome build fingerprints better than bundled Chromium.
-            browser = await playwright.chromium.launch(channel="chrome", **launch)
+            browser = await playwright.chromium.launch(channel="chrome", **options)
         except Exception:
-            browser = await playwright.chromium.launch(**launch)
+            browser = await playwright.chromium.launch(**options)
         try:
             context = await browser.new_context(
                 locale="fr-FR",
